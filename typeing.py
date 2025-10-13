@@ -157,13 +157,16 @@ class BeijingStudentTypingGame:
         self.time_label.config(text="用时: 0.00秒")
 
     def show_sentence(self):
-        displayed_sentence = ""
-        for i, char in enumerate(self.current_sentence):
+        # 展示当前目标句子，已输入部分灰色，当前待输入高亮
+        text = ""
+        for i, c in enumerate(self.current_sentence):
             if i < self.char_pos:
-                displayed_sentence += char
+                text += f"\u0336{c}"  # 已输入加删除线
+            elif i == self.char_pos:
+                text += f"[{c}]" if c != " " else "[ ]"
             else:
-                displayed_sentence += "_"
-        self.sentence_label.config(text=displayed_sentence)
+                text += c
+        self.sentence_label.config(text=text, fg="#00FF00")
 
     def highlight_key(self):
         if self.char_pos < len(self.current_sentence):
@@ -218,6 +221,11 @@ class BeijingStudentTypingGame:
                 self.entry_var.set(self.typed)
                 self.show_sentence()
                 self.highlight_key()
+            else:
+                self.score -= 1
+                self.score_label.config(text=f"得分: {self.score}")
+                self.sentence_label.config(fg="red")
+                self.root.after(300, lambda: self.sentence_label.config(fg="#00FF00"))
             return "break"
         else:
             return "break"
