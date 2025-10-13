@@ -1,5 +1,6 @@
 import tkinter as tk
 import random
+import time
 
 # 示例词库（可补充为北京小学生教材内容）
 GRADE_SENTENCES = {
@@ -93,13 +94,16 @@ class BeijingStudentTypingGame:
         self.current_sentence = ""
         self.char_pos = 0
         self.typed = ""
+        self.start_time = None
+        self.level = 1
+        self.max_level = 10
         # 年级选择
         self.grade_frame = tk.Frame(self.root, bg="black")
         self.grade_frame.pack()
         for g in ["1","2","3","4","5","6"]:
             tk.Button(self.grade_frame, text=f"{g}年级", command=lambda gr=g: self.set_grade(gr)).pack(side=tk.LEFT, padx=2)
         # 目标句子
-        self.sentence_label = tk.Label(self.root, text="", font=("Arial", 22), wraplength=540, bg="black", fg="white")
+        self.sentence_label = tk.Label(self.root, text="", font=("Arial", 22), wraplength=540, bg="black", fg="#00FF00")
         self.sentence_label.pack(pady=12)
         # 输入框
         self.entry_var = tk.StringVar()
@@ -109,6 +113,12 @@ class BeijingStudentTypingGame:
         # 分数
         self.score_label = tk.Label(self.root, text="得分: 0", font=("Arial", 16), bg="black", fg="white")
         self.score_label.pack()
+        # 用时
+        self.time_label = tk.Label(self.root, text="用时: 0.00秒", font=("Arial", 16), bg="black", fg="#00FF00")
+        self.time_label.pack()
+        # 关卡
+        self.level_label = tk.Label(self.root, text="关卡: 1/10", font=("Arial", 16), bg="black", fg="#00FF00")
+        self.level_label.pack()
         # 虚拟键盘
         self.keyboard_frame = tk.Frame(self.root, bg="black")
         self.keyboard_frame.pack(pady=10)
@@ -142,6 +152,9 @@ class BeijingStudentTypingGame:
         self.entry_var.set("")
         self.show_sentence()
         self.highlight_key()
+        self.start_time = time.time()
+        self.level_label.config(text=f"关卡: {self.level}/{self.max_level}")
+        self.time_label.config(text="用时: 0.00秒")
 
     def show_sentence(self):
         displayed_sentence = ""
@@ -178,21 +191,36 @@ class BeijingStudentTypingGame:
                 self.highlight_key()
             return "break"
         elif event.keysym == "Return":
-            # 只有输入完整且内容完全一致才判定通过
             if self.typed == self.current_sentence:
                 self.score += 1
+                self.level += 1
+                elapsed = time.time() - self.start_time
                 self.score_label.config(text=f"得分: {self.score}")
-                self.next_sentence()
+                self.time_label.config(text=f"用时: {elapsed:.2f}秒")
+                if self.level > self.max_level:
+                    self.sentence_label.config(text="闯关成功！", fg="#FFD700")
+                    self.entry.config(state="disabled")
+                else:
+                    self.root.after(800, self.next_sentence)
+            else:
+                self.score -= 1
+                self.score_label.config(text=f"得分: {self.score}")
+                self.sentence_label.config(fg="red")
+                self.root.after(500, lambda: self.sentence_label.config(fg="#00FF00"))
+            return "break"
+        elif len(event.char) == 0:
+            return
+        elif self.char_pos < len(self.current_sentence):
+            target_char = self.current_sentence[self.char_pos]
+            if event.char == target_char:
+                self.typed += event.char
+                self.char_pos += 1
+                self.entry_var.set(self.typed)
+                self.show_sentence()
+                self.highlight_key()
             return "break"
         else:
-            if self.char_pos < len(self.current_sentence):
-                if event.char == self.current_sentence[self.char_pos]:
-                    self.typed += event.char
-                    self.char_pos += 1
-                    self.entry_var.set(self.typed)
-                    self.show_sentence()
-                    self.highlight_key()
-                return "break"
+            return "break"
 
 if __name__ == "__main__":
     root = tk.Tk()
