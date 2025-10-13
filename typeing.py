@@ -85,52 +85,6 @@ KEYS = [
 
 class BeijingStudentTypingGame:
     def __init__(self, root):
-           self.root = root
-           self.root.title("北京小学生英文打字练习")
-           self.root.configure(bg="black")
-        self.grade = "1"
-        self.score = 0
-        self.current_sentence = ""
-        self.char_pos = 0
-        self.typed = ""
-        
-        # 年级选择
-    self.grade_frame = tk.Frame(root, bg="black")
-    self.grade_frame.pack()
-        for g in ["1","2","3","4","5","6"]:
-            tk.Button(self.grade_frame, text=f"{g}年级", command=lambda gr=g: self.set_grade(gr)).pack(side=tk.LEFT, padx=2)
-
-        # 目标句子
-    self.sentence_label = tk.Label(root, text="", font=("Arial", 22), wraplength=540, bg="black", fg="white")
-    self.sentence_label.pack(pady=12)
-
-        # 输入框（只允许正确输入，错误不显示）
-        self.entry_var = tk.StringVar()
-    self.entry = tk.Entry(root, font=("Arial", 18), width=50, textvariable=self.entry_var, bg="black", fg="white", insertbackground="white")
-    self.entry.pack(pady=8)
-    self.entry.bind("<Key>", self.on_key_press)
-
-        # 分数
-    self.score_label = tk.Label(root, text="得分: 0", font=("Arial", 16), bg="black", fg="white")
-    self.score_label.pack()
-
-        # 虚拟键盘
-    self.keyboard_frame = tk.Frame(root, bg="black")
-    self.keyboard_frame.pack(pady=10)
-        self.key_buttons = []
-        for row in KEYS:
-            row_frame = tk.Frame(self.keyboard_frame, bg="black")
-            row_frame.pack()
-            btn_row = []
-            for key in row:
-                btn = tk.Label(row_frame, text=key.upper(), font=("Arial", 16), width=2, borderwidth=2, relief="ridge", bg="black", fg="white")
-                btn.pack(side=tk.LEFT, padx=2, pady=2)
-                btn_row.append(btn)
-            self.key_buttons.append(btn_row)
-
-        self.next_sentence()
-
-    def __init__(self, root):
         self.root = root
         self.root.title("北京小学生英文打字练习")
         self.root.configure(bg="black")
@@ -139,27 +93,22 @@ class BeijingStudentTypingGame:
         self.current_sentence = ""
         self.char_pos = 0
         self.typed = ""
-
         # 年级选择
         self.grade_frame = tk.Frame(self.root, bg="black")
         self.grade_frame.pack()
         for g in ["1","2","3","4","5","6"]:
             tk.Button(self.grade_frame, text=f"{g}年级", command=lambda gr=g: self.set_grade(gr)).pack(side=tk.LEFT, padx=2)
-
         # 目标句子
         self.sentence_label = tk.Label(self.root, text="", font=("Arial", 22), wraplength=540, bg="black", fg="white")
         self.sentence_label.pack(pady=12)
-
-        # 输入框（只允许正确输入，错误不显示）
+        # 输入框
         self.entry_var = tk.StringVar()
         self.entry = tk.Entry(self.root, font=("Arial", 18), width=50, textvariable=self.entry_var, bg="black", fg="white", insertbackground="white")
         self.entry.pack(pady=8)
         self.entry.bind("<Key>", self.on_key_press)
-
         # 分数
         self.score_label = tk.Label(self.root, text="得分: 0", font=("Arial", 16), bg="black", fg="white")
         self.score_label.pack()
-
         # 虚拟键盘
         self.keyboard_frame = tk.Frame(self.root, bg="black")
         self.keyboard_frame.pack(pady=10)
@@ -173,10 +122,44 @@ class BeijingStudentTypingGame:
                 btn.pack(side=tk.LEFT, padx=2, pady=2)
                 btn_row.append(btn)
             self.key_buttons.append(btn_row)
-
         self.next_sentence()
-                for btn_row in self.key_buttons:
-                    for btn in btn_row:
+
+    def set_grade(self, grade):
+        self.grade = grade
+        self.score = 0
+        self.char_pos = 0
+        self.typed = ""
+        self.score_label.config(text="得分: 0")
+        for btn_row in self.key_buttons:
+            for btn in btn_row:
+                btn.config(bg="black", fg="white")
+        self.next_sentence()
+
+    def next_sentence(self):
+        self.current_sentence = random.choice(GRADE_SENTENCES[self.grade])
+        self.char_pos = 0
+        self.typed = ""
+        self.entry_var.set("")
+        self.show_sentence()
+        self.highlight_key()
+
+    def show_sentence(self):
+        displayed_sentence = ""
+        for i, char in enumerate(self.current_sentence):
+            if i < self.char_pos:
+                displayed_sentence += char
+            else:
+                displayed_sentence += "_"
+        self.sentence_label.config(text=displayed_sentence)
+
+    def highlight_key(self):
+        if self.char_pos < len(self.current_sentence):
+            char = self.current_sentence[self.char_pos]
+            for btn_row in self.key_buttons:
+                for btn in btn_row:
+                    if btn.cget("text") == char:
+                        btn.config(bg="yellow", fg="black")
+                    else:
                         btn.config(bg="black", fg="white")
         else:
             # 没有待输入字符时全部恢复
@@ -199,26 +182,17 @@ class BeijingStudentTypingGame:
             if self.typed == self.current_sentence:
                 self.score += 1
                 self.score_label.config(text=f"得分: {self.score}")
-                self.root.after(500, self.next_sentence)
-            else:
-                # 不通过，提示
-                self.sentence_label.config(fg="red")
-                self.root.after(500, lambda: self.sentence_label.config(fg="black"))
-            return "break"
-        elif len(event.char) == 0:
-            return  # 非字符输入（如功能键）
-        elif self.char_pos < len(self.current_sentence):
-            target_char = self.current_sentence[self.char_pos]
-            if event.char == target_char:
-                self.typed += event.char
-                self.char_pos += 1
-                self.entry_var.set(self.typed)
-                self.show_sentence()
-                self.highlight_key()
-            # 错误字符不显示，直接忽略
+                self.next_sentence()
             return "break"
         else:
-            return "break"
+            if self.char_pos < len(self.current_sentence):
+                if event.char == self.current_sentence[self.char_pos]:
+                    self.typed += event.char
+                    self.char_pos += 1
+                    self.entry_var.set(self.typed)
+                    self.show_sentence()
+                    self.highlight_key()
+                return "break"
 
 if __name__ == "__main__":
     root = tk.Tk()
