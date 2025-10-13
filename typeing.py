@@ -85,8 +85,9 @@ KEYS = [
 
 class BeijingStudentTypingGame:
     def __init__(self, root):
-        self.root = root
-        self.root.title("北京小学生英文打字练习")
+           self.root = root
+           self.root.title("北京小学生英文打字练习")
+           self.root.configure(bg="black")
         self.grade = "1"
         self.score = 0
         self.current_sentence = ""
@@ -94,88 +95,94 @@ class BeijingStudentTypingGame:
         self.typed = ""
         
         # 年级选择
-        self.grade_frame = tk.Frame(root)
-        self.grade_frame.pack()
+    self.grade_frame = tk.Frame(root, bg="black")
+    self.grade_frame.pack()
         for g in ["1","2","3","4","5","6"]:
             tk.Button(self.grade_frame, text=f"{g}年级", command=lambda gr=g: self.set_grade(gr)).pack(side=tk.LEFT, padx=2)
 
         # 目标句子
-        self.sentence_label = tk.Label(root, text="", font=("Arial", 22), wraplength=540)
-        self.sentence_label.pack(pady=12)
+    self.sentence_label = tk.Label(root, text="", font=("Arial", 22), wraplength=540, bg="black", fg="white")
+    self.sentence_label.pack(pady=12)
 
         # 输入框（只允许正确输入，错误不显示）
         self.entry_var = tk.StringVar()
-        self.entry = tk.Entry(root, font=("Arial", 18), width=50, textvariable=self.entry_var)
-        self.entry.pack(pady=8)
-        self.entry.bind("<Key>", self.on_key_press)
+    self.entry = tk.Entry(root, font=("Arial", 18), width=50, textvariable=self.entry_var, bg="black", fg="white", insertbackground="white")
+    self.entry.pack(pady=8)
+    self.entry.bind("<Key>", self.on_key_press)
 
         # 分数
-        self.score_label = tk.Label(root, text="得分: 0", font=("Arial", 16))
-        self.score_label.pack()
+    self.score_label = tk.Label(root, text="得分: 0", font=("Arial", 16), bg="black", fg="white")
+    self.score_label.pack()
 
         # 虚拟键盘
-        self.keyboard_frame = tk.Frame(root)
-        self.keyboard_frame.pack(pady=10)
+    self.keyboard_frame = tk.Frame(root, bg="black")
+    self.keyboard_frame.pack(pady=10)
         self.key_buttons = []
         for row in KEYS:
-            row_frame = tk.Frame(self.keyboard_frame)
+            row_frame = tk.Frame(self.keyboard_frame, bg="black")
             row_frame.pack()
             btn_row = []
             for key in row:
-                btn = tk.Label(row_frame, text=key.upper(), font=("Arial", 16), width=2, borderwidth=2, relief="ridge")
+                btn = tk.Label(row_frame, text=key.upper(), font=("Arial", 16), width=2, borderwidth=2, relief="ridge", bg="black", fg="white")
                 btn.pack(side=tk.LEFT, padx=2, pady=2)
                 btn_row.append(btn)
             self.key_buttons.append(btn_row)
 
         self.next_sentence()
 
-    def set_grade(self, gr):
-        self.grade = gr
+    def __init__(self, root):
+        self.root = root
+        self.root.title("北京小学生英文打字练习")
+        self.root.configure(bg="black")
+        self.grade = "1"
         self.score = 0
-        self.score_label.config(text="得分: 0")
-        self.next_sentence()
-
-    def next_sentence(self):
-        self.current_sentence = random.choice(GRADE_SENTENCES[self.grade])
+        self.current_sentence = ""
         self.char_pos = 0
         self.typed = ""
-        self.entry_var.set("")
-        self.show_sentence()
-        self.highlight_key()
 
-    def show_sentence(self):
-        # 展示当前目标句子，已输入部分灰色，当前待输入高亮
-        text = ""
-        for i, c in enumerate(self.current_sentence):
-            if i < self.char_pos:
-                text += f"\u0336{c}"  # 已输入加删除线
-            elif i == self.char_pos:
-                text += f"[{c}]" if c != " " else "[ ]"
-            else:
-                text += c
-        self.sentence_label.config(text=text)
+        # 年级选择
+        self.grade_frame = tk.Frame(self.root, bg="black")
+        self.grade_frame.pack()
+        for g in ["1","2","3","4","5","6"]:
+            tk.Button(self.grade_frame, text=f"{g}年级", command=lambda gr=g: self.set_grade(gr)).pack(side=tk.LEFT, padx=2)
 
-    def highlight_key(self):
-        if self.char_pos < len(self.current_sentence):
-            target_char = self.current_sentence[self.char_pos].lower()
-            found = False
-            for r, row in enumerate(KEYS):
-                for c, key in enumerate(row):
-                    if key == target_char:
-                        self.key_buttons[r][c].config(bg="yellow")
-                        found = True
-                    else:
-                        self.key_buttons[r][c].config(bg="SystemButtonFace")
-            # 若不是字母（如空格、标点），不高亮任何键
-            if not found:
+        # 目标句子
+        self.sentence_label = tk.Label(self.root, text="", font=("Arial", 22), wraplength=540, bg="black", fg="white")
+        self.sentence_label.pack(pady=12)
+
+        # 输入框（只允许正确输入，错误不显示）
+        self.entry_var = tk.StringVar()
+        self.entry = tk.Entry(self.root, font=("Arial", 18), width=50, textvariable=self.entry_var, bg="black", fg="white", insertbackground="white")
+        self.entry.pack(pady=8)
+        self.entry.bind("<Key>", self.on_key_press)
+
+        # 分数
+        self.score_label = tk.Label(self.root, text="得分: 0", font=("Arial", 16), bg="black", fg="white")
+        self.score_label.pack()
+
+        # 虚拟键盘
+        self.keyboard_frame = tk.Frame(self.root, bg="black")
+        self.keyboard_frame.pack(pady=10)
+        self.key_buttons = []
+        for row in KEYS:
+            row_frame = tk.Frame(self.keyboard_frame, bg="black")
+            row_frame.pack()
+            btn_row = []
+            for key in row:
+                btn = tk.Label(row_frame, text=key.upper(), font=("Arial", 16), width=2, borderwidth=2, relief="ridge", bg="black", fg="white")
+                btn.pack(side=tk.LEFT, padx=2, pady=2)
+                btn_row.append(btn)
+            self.key_buttons.append(btn_row)
+
+        self.next_sentence()
                 for btn_row in self.key_buttons:
                     for btn in btn_row:
-                        btn.config(bg="SystemButtonFace")
+                        btn.config(bg="black", fg="white")
         else:
             # 没有待输入字符时全部恢复
             for btn_row in self.key_buttons:
                 for btn in btn_row:
-                    btn.config(bg="SystemButtonFace")
+                    btn.config(bg="black", fg="white")
 
     def on_key_press(self, event):
         # 限制输入框内容，只允许输入正确字符，错误则忽略
