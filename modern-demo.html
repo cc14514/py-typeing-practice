@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Modern Typing Adventure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #6c5ce7, #a29bfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #b0b0b0;
+            margin-bottom: 2rem;
+        }
+
+        .status-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(108, 92, 231, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .card:hover::before {
+            left: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #6c5ce7;
+            box-shadow: 0 20px 40px rgba(108, 92, 231, 0.3);
+        }
+
+        .card-title {
+            font-size: 1rem;
+            color: #6c5ce7;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .card-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-unit {
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .game-area {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .progress-container {
+            margin-bottom: 2rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6c5ce7, #a29bfe);
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: pulse 1.5s infinite;
+        }
+
+        .text-display {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            font-family: 'Monaco', 'Menlo', monospace;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border-left: 4px solid #6c5ce7;
+        }
+
+        .char {
+            transition: all 0.2s ease;
+        }
+
+        .char.correct {
+            color: #4caf50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .char.incorrect {
+            color: #f44336;
+            background: rgba(244, 67, 54, 0.1);
+        }
+
+        .char.current {
+            background: rgba(108, 92, 231, 0.3);
+            animation: blink 1s infinite;
+        }
+
+        .input-area {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-area:focus-within {
+            border-color: #6c5ce7;
+            box-shadow: 0 0 20px rgba(108, 92, 231, 0.3);
+        }
+
+        .text-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-family: 'Monaco', 'Menlo', monospace;
+            resize: none;
+            min-height: 120px;
+        }
+
+        .text-input::placeholder {
+            color: #666;
+        }
+
+        .controls {
+            text-align: center;
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #6c5ce7, #a29bfe);
+            border: none;
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 600;
+            padding: 1rem 3rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(108, 92, 231, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(108, 92, 231, 0.4);
+        }
+
+        .start-btn:active {
+            transform: translateY(0);
+        }
+
+        .start-btn.playing {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .result-area {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 2rem;
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid #4caf50;
+            border-radius: 16px;
+            display: none;
+        }
+
+        .result-title {
+            font-size: 1.8rem;
+            color: #4caf50;
+            margin-bottom: 1rem;
+        }
+
+        .result-text {
+            font-size: 1.1rem;
+            color: #b0b0b0;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(108, 92, 231, 0.5); }
+            to { text-shadow: 0 0 30px rgba(108, 92, 231, 0.8), 0 0 40px rgba(108, 92, 231, 0.3); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #6c5ce7;
+            border-radius: 50%;
+            animation: float 6s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .feature-highlight {
+            background: rgba(108, 92, 231, 0.1);
+            border: 1px solid #6c5ce7;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .feature-title {
+            color: #6c5ce7;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 0.8rem;
+        }
+
+        .feature-item {
+            padding: 0.5rem 0;
+            color: #b0b0b0;
+        }
+
+        .feature-item::before {
+            content: '🌟';
+            margin-right: 0.5rem;
+        }
+
+        .combo-counter {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            z-index: 1000;
+            transform: scale(0);
+            transition: transform 0.3s ease;
+        }
+
+        .combo-counter.active {
+            transform: scale(1);
+            animation: bounce 0.5s ease;
+        }
+
+        .explosion {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #ffd700;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: explode 0.6s ease-out forwards;
+        }
+
+        @keyframes explode {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(3) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0) scale(1);
+            }
+            40% {
+                transform: translateY(-10px) scale(1.1);
+            }
+            60% {
+                transform: translateY(-5px) scale(1.05);
+            }
+        }
+
+        .achievement-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 2000;
+            transition: transform 0.3s ease;
+            box-shadow: 0 20px 40px rgba(78, 205, 196, 0.3);
+        }
+
+        .achievement-popup.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .achievement-title {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .achievement-desc {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .typing-effects {
+            position: absolute;
+            pointer-events: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+            z-index: 100;
+        }
+
+        .effect-excellent {
+            color: #4ecdc4;
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        .effect-perfect {
+            color: #ffd700;
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        .effect-combo {
+            color: #ff6b6b;
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .theme-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-cyber { background: linear-gradient(45deg, #667eea, #764ba2); }
+        .theme-nature { background: linear-gradient(45deg, #56ab2f, #a8e6cf); }
+        .theme-sunset { background: linear-gradient(45deg, #ff9a56, #ffad56); }
+        .theme-ocean { background: linear-gradient(45deg, #4facfe, #00f2fe); }
+
+        .wpm-meter {
+            background: linear-gradient(90deg, #ff6b6b 0%, #ffd93d 50%, #6bcf7f 100%);
+            height: 20px;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .wpm-needle {
+            position: absolute;
+            top: -5px;
+            width: 4px;
+            height: 30px;
+            background: #fff;
+            border-radius: 2px;
+            transition: left 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-particles" id="particles"></div>
+    <div class="combo-counter" id="comboCounter">🔥 COMBO x0</div>
+    <div class="achievement-popup" id="achievementPopup">
+        <div class="achievement-title" id="achievementTitle">🏆 Achievement Unlocked!</div>
+        <div class="achievement-desc" id="achievementDesc">Speed Demon: 50+ WPM</div>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🎮 Modern Typing Adventure</h1>
+            <p class="subtitle">Master English typing with gamified experience & Material Design 3.0!</p>
+            
+            <div class="theme-selector">
+                <button class="theme-btn theme-cyber" onclick="setTheme('cyber')" title="Cyber Theme"></button>
+                <button class="theme-btn theme-nature" onclick="setTheme('nature')" title="Nature Theme"></button>
+                <button class="theme-btn theme-sunset" onclick="setTheme('sunset')" title="Sunset Theme"></button>
+                <button class="theme-btn theme-ocean" onclick="setTheme('ocean')" title="Ocean Theme"></button>
+            </div>
+        </div>
+
+        <div class="status-cards">
+            <div class="card">
+                <div class="card-title">🚀 Speed</div>
+                <div class="card-value" id="wpm">0</div>
+                <div class="card-unit">WPM</div>
+                <div class="wpm-meter">
+                    <div class="wpm-needle" id="wpmNeedle"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">🎯 Accuracy</div>
+                <div class="card-value" id="accuracy">100</div>
+                <div class="card-unit">%</div>
+            </div>
+            <div class="card">
+                <div class="card-title">❌ Errors</div>
+                <div class="card-value" id="errors">0</div>
+                <div class="card-unit">mistakes</div>
+            </div>
+            <div class="card">
+                <div class="card-title">⏰ Time</div>
+                <div class="card-value" id="timeLeft">60</div>
+                <div class="card-unit">seconds</div>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div class="text-display" id="textDisplay">
+                The quick brown fox jumps over the lazy dog near the riverbank. Programming languages like JavaScript, Python, and TypeScript have revolutionized modern web development. Master touch typing to boost your coding efficiency and productivity significantly.
+            </div>
+
+            <div class="input-area">
+                <textarea 
+                    class="text-input" 
+                    id="textInput" 
+                    placeholder="Click START to begin typing the text above..."
+                    disabled
+                ></textarea>
+            </div>
+
+            <div class="controls">
+                <button class="start-btn" id="startBtn" onclick="toggleGame()">
+                    🚀 START TYPING ADVENTURE
+                </button>
+            </div>
+
+            <div class="result-area" id="resultArea">
+                <div class="result-title">🎉 Game Complete!</div>
+                <div class="result-text" id="resultText">
+                    Final Score: 0 WPM, Accuracy 100%
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-highlight">
+            <div class="feature-title">🌟 Gaming Features</div>
+            <ul class="feature-list">
+                <li class="feature-item">Real-time combo system</li>
+                <li class="feature-item">Achievement unlocks</li>
+                <li class="feature-item">Multiple visual themes</li>
+                <li class="feature-item">Speed meter visualization</li>
+                <li class="feature-item">Particle effects & animations</li>
+                <li class="feature-item">English typing mastery</li>
+                <li class="feature-item">Progressive difficulty</li>
+                <li class="feature-item">Performance analytics</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let gameState = {
+            isPlaying: false,
+            startTime: null,
+            currentText: 'The quick brown fox jumps over the lazy dog near the riverbank. Programming languages like JavaScript, Python, and TypeScript have revolutionized modern web development. Master touch typing to boost your coding efficiency and productivity significantly.',
+            userInput: '',
+            timer: null,
+            timeLeft: 60,
+            combo: 0,
+            maxCombo: 0,
+            correctStreak: 0,
+            theme: 'cyber'
+        };
+
+        const typingTexts = [
+            "The quick brown fox jumps over the lazy dog near the riverbank. Programming languages like JavaScript, Python, and TypeScript have revolutionized modern web development.",
+            "Artificial intelligence and machine learning are transforming industries worldwide. Developers must adapt to new technologies while maintaining code quality and performance standards.",
+            "Cloud computing platforms like AWS, Azure, and Google Cloud provide scalable infrastructure for modern applications. DevOps practices ensure continuous integration and deployment.",
+            "Cybersecurity is crucial in today's digital landscape. Encryption, authentication, and secure coding practices protect sensitive data from malicious attacks and breaches.",
+            "Open source software drives innovation across the tech industry. Contributing to projects like React, Vue, and Angular helps developers grow their skills and reputation."
+        ];
+
+        const achievements = [
+            { id: 'speed_demon', threshold: 50, title: '🚀 Speed Demon', desc: 'Reached 50+ WPM!' },
+            { id: 'accuracy_master', threshold: 95, title: '🎯 Accuracy Master', desc: '95%+ accuracy!' },
+            { id: 'combo_king', threshold: 20, title: '🔥 Combo King', desc: '20+ character combo!' },
+            { id: 'perfectionist', threshold: 100, title: '💎 Perfectionist', desc: '100% accuracy!' },
+            { id: 'lightning_fast', threshold: 80, title: '⚡ Lightning Fast', desc: '80+ WPM achieved!' }
+        ];
+
+        const themes = {
+            cyber: { primary: '#667eea', secondary: '#764ba2', accent: '#6c5ce7' },
+            nature: { primary: '#56ab2f', secondary: '#a8e6cf', accent: '#4caf50' },
+            sunset: { primary: '#ff9a56', secondary: '#ffad56', accent: '#ff6b6b' },
+            ocean: { primary: '#4facfe', secondary: '#00f2fe', accent: '#4ecdc4' }
+        };
+
+        function setTheme(themeName) {
+            gameState.theme = themeName;
+            const theme = themes[themeName];
+            document.documentElement.style.setProperty('--primary-color', theme.primary);
+            document.documentElement.style.setProperty('--secondary-color', theme.secondary);
+            document.documentElement.style.setProperty('--accent-color', theme.accent);
+            
+            // Update button gradients
+            const startBtn = document.getElementById('startBtn');
+            if (!gameState.isPlaying) {
+                startBtn.style.background = `linear-gradient(45deg, ${theme.primary}, ${theme.secondary})`;
+            }
+        }
+
+        function createParticles() {
+            const container = document.getElementById('particles');
+            container.innerHTML = '';
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (4 + Math.random() * 4) + 's';
+                particle.style.background = themes[gameState.theme].accent;
+                container.appendChild(particle);
+            }
+        }
+
+        function createTypingEffect(text, x, y) {
+            const effect = document.createElement('div');
+            effect.className = `typing-effects effect-${text.toLowerCase().replace(' ', '-')}`;
+            effect.textContent = text;
+            effect.style.left = x + 'px';
+            effect.style.top = y + 'px';
+            document.body.appendChild(effect);
+            
+            setTimeout(() => effect.remove(), 1000);
+        }
+
+        function createExplosion(x, y) {
+            for (let i = 0; i < 8; i++) {
+                const explosion = document.createElement('div');
+                explosion.className = 'explosion';
+                explosion.style.left = x + 'px';
+                explosion.style.top = y + 'px';
+                explosion.style.animationDelay = (i * 0.1) + 's';
+                document.body.appendChild(explosion);
+                
+                setTimeout(() => explosion.remove(), 600);
+            }
+        }
+
+        function showAchievement(achievement) {
+            const popup = document.getElementById('achievementPopup');
+            const title = document.getElementById('achievementTitle');
+            const desc = document.getElementById('achievementDesc');
+            
+            title.textContent = achievement.title;
+            desc.textContent = achievement.desc;
+            popup.classList.add('show');
+            
+            setTimeout(() => popup.classList.remove('show'), 3000);
+        }
+
+        function updateCombo() {
+            const comboCounter = document.getElementById('comboCounter');
+            if (gameState.combo > 5) {
+                comboCounter.textContent = `🔥 COMBO x${gameState.combo}`;
+                comboCounter.classList.add('active');
+                
+                if (gameState.combo % 10 === 0) {
+                    createExplosion(window.innerWidth - 100, 50);
+                    createTypingEffect('COMBO!', window.innerWidth - 150, 80);
+                }
+            } else {
+                comboCounter.classList.remove('active');
+            }
+        }
+
+        function updateWPMMeter(wpm) {
+            const needle = document.getElementById('wpmNeedle');
+            const maxWPM = 120;
+            const percentage = Math.min((wpm / maxWPM) * 100, 100);
+            needle.style.left = percentage + '%';
+        }
+
+        function checkAchievements(wpm, accuracy) {
+            achievements.forEach(achievement => {
+                if (achievement.id === 'speed_demon' && wpm >= achievement.threshold) {
+                    showAchievement(achievement);
+                } else if (achievement.id === 'accuracy_master' && accuracy >= achievement.threshold) {
+                    showAchievement(achievement);
+                } else if (achievement.id === 'combo_king' && gameState.combo >= achievement.threshold) {
+                    showAchievement(achievement);
+                } else if (achievement.id === 'perfectionist' && accuracy === 100 && gameState.userInput.length > 10) {
+                    showAchievement(achievement);
+                } else if (achievement.id === 'lightning_fast' && wpm >= achievement.threshold) {
+                    showAchievement(achievement);
+                }
+            });
+        }
+
+        function updateDisplay() {
+            const textDisplay = document.getElementById('textDisplay');
+            const userInput = gameState.userInput;
+            const currentText = gameState.currentText;
+            
+            let html = '';
+            for (let i = 0; i < currentText.length; i++) {
+                let className = '';
+                if (i < userInput.length) {
+                    if (userInput[i] === currentText[i]) {
+                        className = 'correct';
+                        if (i === userInput.length - 1) {
+                            gameState.correctStreak++;
+                            gameState.combo++;
+                            gameState.maxCombo = Math.max(gameState.maxCombo, gameState.combo);
+                        }
+                    } else {
+                        className = 'incorrect';
+                        gameState.combo = 0;
+                        gameState.correctStreak = 0;
+                    }
+                } else if (i === userInput.length) {
+                    className = 'current';
+                }
+                html += `<span class="char ${className}">${currentText[i]}</span>`;
+            }
+            
+            textDisplay.innerHTML = html;
+            updateCombo();
+        }
+
+        function calculateStats() {
+            const userInput = gameState.userInput;
+            const currentText = gameState.currentText;
+            
+            if (!gameState.startTime || !userInput.length) return;
+            
+            const timeElapsed = (Date.now() - gameState.startTime) / 1000 / 60;
+            const wordsTyped = userInput.length / 5;
+            const wpm = Math.round(wordsTyped / timeElapsed) || 0;
+            
+            let errors = 0;
+            for (let i = 0; i < userInput.length; i++) {
+                if (userInput[i] !== currentText[i]) {
+                    errors++;
+                }
+            }
+            
+            const accuracy = userInput.length > 0 ? Math.round(((userInput.length - errors) / userInput.length) * 100) : 100;
+            const progress = (userInput.length / currentText.length) * 100;
+            
+            document.getElementById('wpm').textContent = wpm;
+            document.getElementById('accuracy').textContent = accuracy;
+            document.getElementById('errors').textContent = errors;
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            updateWPMMeter(wpm);
+            checkAchievements(wpm, accuracy);
+            
+            // Special effects for milestones
+            if (wpm > 0 && wpm % 10 === 0 && userInput.length > 20) {
+                createTypingEffect('EXCELLENT!', Math.random() * window.innerWidth, Math.random() * 100 + 200);
+            }
+            
+            if (accuracy === 100 && userInput.length > 30) {
+                createTypingEffect('PERFECT!', Math.random() * window.innerWidth, Math.random() * 100 + 200);
+            }
+        }
+
+        function getRandomText() {
+            return typingTexts[Math.floor(Math.random() * typingTexts.length)];
+        }
+
+        function toggleGame() {
+            const startBtn = document.getElementById('startBtn');
+            const textInput = document.getElementById('textInput');
+            const resultArea = document.getElementById('resultArea');
+            
+            if (!gameState.isPlaying) {
+                // Start game
+                gameState.isPlaying = true;
+                gameState.startTime = Date.now();
+                gameState.userInput = '';
+                gameState.timeLeft = 60;
+                gameState.combo = 0;
+                gameState.maxCombo = 0;
+                gameState.correctStreak = 0;
+                gameState.currentText = getRandomText();
+                
+                startBtn.textContent = '⏹️ STOP GAME';
+                startBtn.className = 'start-btn playing';
+                textInput.disabled = false;
+                textInput.value = '';
+                textInput.placeholder = 'Start typing the text above...';
+                textInput.focus();
+                resultArea.style.display = 'none';
+                
+                // Start timer
+                gameState.timer = setInterval(() => {
+                    gameState.timeLeft--;
+                    document.getElementById('timeLeft').textContent = gameState.timeLeft;
+                    
+                    if (gameState.timeLeft <= 0) {
+                        endGame();
+                    }
+                }, 1000);
+                
+                updateDisplay();
+                createParticles();
+            } else {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            gameState.isPlaying = false;
+            clearInterval(gameState.timer);
+            
+            const startBtn = document.getElementById('startBtn');
+            const textInput = document.getElementById('textInput');
+            const resultArea = document.getElementById('resultArea');
+            const resultText = document.getElementById('resultText');
+            
+            startBtn.textContent = '🚀 START TYPING ADVENTURE';
+            startBtn.className = 'start-btn';
+            startBtn.style.background = `linear-gradient(45deg, ${themes[gameState.theme].primary}, ${themes[gameState.theme].secondary})`;
+            textInput.disabled = true;
+            textInput.placeholder = 'Click START to begin typing...';
+            
+            const wpm = document.getElementById('wpm').textContent;
+            const accuracy = document.getElementById('accuracy').textContent;
+            
+            resultText.textContent = `Final Score: ${wpm} WPM, Accuracy ${accuracy}%, Max Combo: ${gameState.maxCombo}`;
+            resultArea.style.display = 'block';
+            
+            // Final celebration effect
+            if (parseInt(wpm) > 40) {
+                createExplosion(window.innerWidth / 2, window.innerHeight / 2);
+                createTypingEffect('AMAZING!', window.innerWidth / 2 - 50, window.innerHeight / 2 + 50);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('textInput').addEventListener('input', (e) => {
+            if (!gameState.isPlaying) return;
+            
+            gameState.userInput = e.target.value;
+            updateDisplay();
+            calculateStats();
+            
+            // Check if finished
+            if (gameState.userInput.length >= gameState.currentText.length) {
+                endGame();
+            }
+        });
+
+        // Keyboard sound effects
+        document.getElementById('textInput').addEventListener('keydown', (e) => {
+            if (gameState.isPlaying && e.key.length === 1) {
+                // Simple audio feedback using Web Audio API
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.setValueAtTime(800 + Math.random() * 200, audioContext.currentTime);
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.1);
+                } catch (e) {
+                    // Audio not supported
+                }
+            }
+        });
+
+        // Initialize
+        setTheme('cyber');
+        createParticles();
+        updateDisplay();
+        
+        // Add dynamic background effects
+        setInterval(() => {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.transform = 'translateY(-2px) rotateY(2deg)';
+                    setTimeout(() => {
+                        card.style.transform = 'translateY(0) rotateY(0deg)';
+                    }, 200);
+                }, index * 100);
+            });
+        }, 8000);
+
+        // Dynamic particle regeneration
+        setInterval(() => {
+            if (gameState.isPlaying) {
+                createParticles();
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
